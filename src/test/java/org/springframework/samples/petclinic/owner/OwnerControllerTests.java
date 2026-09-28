@@ -24,6 +24,7 @@ import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.samples.petclinic.mapper.OwnerMapper;
 import org.springframework.test.context.aot.DisabledInAotMode;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
@@ -68,7 +69,8 @@ class OwnerControllerTests {
 	private MockMvc mockMvc;
 
 	@MockitoBean
-	private OwnerRepository owners;
+	// private OwnerRepository owners;
+	private OwnerMapper owners;
 
 	private Owner george() {
 		Owner george = new Owner();
@@ -93,10 +95,12 @@ class OwnerControllerTests {
 	void setup() {
 
 		Owner george = george();
-		given(this.owners.findByLastNameStartingWith(eq("Franklin"), any(Pageable.class)))
-			.willReturn(new PageImpl<>(List.of(george)));
+		// given(this.owners.findByLastNameStartingWith(eq("Franklin"), any(Pageable.class)))
+		given(this.owners.getByLastName(eq("Franklin")))
+			.willReturn(List.of(george));
 
-		given(this.owners.findById(TEST_OWNER_ID)).willReturn(Optional.of(george));
+		// given(this.owners.findById(TEST_OWNER_ID)).willReturn(Optional.of(george));
+		given(this.owners.getById(TEST_OWNER_ID)).willReturn(Optional.of(george));
 		Visit visit = new Visit();
 		visit.setDate(LocalDate.now());
 		george.getPet("Max").getVisits().add(visit);
@@ -143,15 +147,19 @@ class OwnerControllerTests {
 
 	@Test
 	void processFindFormSuccess() throws Exception {
-		Page<Owner> tasks = new PageImpl<>(List.of(george(), new Owner()));
-		when(this.owners.findByLastNameStartingWith(anyString(), any(Pageable.class))).thenReturn(tasks);
+		// Page<Owner> tasks = new PageImpl<>(List.of(george(), new Owner()));
+		// when(this.owners.findByLastNameStartingWith(anyString(), any(Pageable.class))).thenReturn(tasks);
+		List<Owner> tasks = List.of(george(), new Owner());
+		when(this.owners.getByLastName(anyString())).thenReturn(tasks);
 		mockMvc.perform(get("/owners?page=1")).andExpect(status().isOk()).andExpect(view().name("owners/ownersList"));
 	}
 
 	@Test
 	void processFindFormByLastName() throws Exception {
-		Page<Owner> tasks = new PageImpl<>(List.of(george()));
-		when(this.owners.findByLastNameStartingWith(eq("Franklin"), any(Pageable.class))).thenReturn(tasks);
+		// Page<Owner> tasks = new PageImpl<>(List.of(george()));
+		// when(this.owners.findByLastNameStartingWith(eq("Franklin"), any(Pageable.class))).thenReturn(tasks);
+		List<Owner> tasks = List.of(george(), new Owner());
+		when(this.owners.getByLastName(anyString())).thenReturn(tasks);
 		mockMvc.perform(get("/owners?page=1").param("lastName", "Franklin"))
 			.andExpect(status().is3xxRedirection())
 			.andExpect(view().name("redirect:/owners/" + TEST_OWNER_ID));
@@ -159,8 +167,10 @@ class OwnerControllerTests {
 
 	@Test
 	void processFindFormIgnoresSurroundingWhitespace() throws Exception {
-		Page<Owner> tasks = new PageImpl<>(List.of(george()));
-		when(this.owners.findByLastNameStartingWith(eq("Franklin"), any(Pageable.class))).thenReturn(tasks);
+		// Page<Owner> tasks = new PageImpl<>(List.of(george()));
+		// when(this.owners.findByLastNameStartingWith(eq("Franklin"), any(Pageable.class))).thenReturn(tasks);
+		List<Owner> tasks = List.of(george(), new Owner());
+		when(this.owners.getByLastName(anyString())).thenReturn(tasks);
 
 		for (String lastName : List.of(" Franklin", "Franklin ", " Franklin ")) {
 			mockMvc.perform(get("/owners?page=1").param("lastName", lastName))
@@ -168,25 +178,31 @@ class OwnerControllerTests {
 				.andExpect(view().name("redirect:/owners/" + TEST_OWNER_ID));
 		}
 
-		verify(this.owners, times(3)).findByLastNameStartingWith(eq("Franklin"), any(Pageable.class));
+		// verify(this.owners, times(3)).findByLastNameStartingWith(eq("Franklin"), any(Pageable.class));
+		verify(this.owners, times(3)).getByLastName(eq("Franklin"));
 	}
 
 	@Test
 	void processFindFormWithWhitespaceOnlyLastNameReturnsAllOwners() throws Exception {
-		Page<Owner> tasks = new PageImpl<>(List.of(george(), new Owner()));
-		when(this.owners.findByLastNameStartingWith(eq(""), any(Pageable.class))).thenReturn(tasks);
+		// Page<Owner> tasks = new PageImpl<>(List.of(george(), new Owner()));
+		// when(this.owners.findByLastNameStartingWith(eq(""), any(Pageable.class))).thenReturn(tasks);
+		List<Owner> tasks = List.of(george(), new Owner());
+		when(this.owners.getByLastName(anyString())).thenReturn(tasks);
 
 		mockMvc.perform(get("/owners?page=1").param("lastName", "   "))
 			.andExpect(status().isOk())
 			.andExpect(view().name("owners/ownersList"));
 
-		verify(this.owners).findByLastNameStartingWith(eq(""), any(Pageable.class));
+		// verify(this.owners).findByLastNameStartingWith(eq(""), any(Pageable.class));
+		verify(this.owners, times(3)).getByLastName(eq("Franklin"));
 	}
 
 	@Test
 	void processFindFormNoOwnersFound() throws Exception {
-		Page<Owner> tasks = new PageImpl<>(List.of());
-		when(this.owners.findByLastNameStartingWith(eq("Unknown Surname"), any(Pageable.class))).thenReturn(tasks);
+		// Page<Owner> tasks = new PageImpl<>(List.of());
+		// when(this.owners.findByLastNameStartingWith(eq("Unknown Surname"), any(Pageable.class))).thenReturn(tasks);
+		List<Owner> tasks = List.of(george(), new Owner());
+		when(this.owners.getByLastName(anyString())).thenReturn(tasks);
 		mockMvc.perform(get("/owners?page=1").param("lastName", "Unknown Surname"))
 			.andExpect(status().isOk())
 			.andExpect(model().attributeHasFieldErrors("owner", "lastName"))
@@ -268,7 +284,8 @@ class OwnerControllerTests {
 		owner.setCity("New York");
 		owner.setTelephone("0123456789");
 
-		when(owners.findById(pathOwnerId)).thenReturn(Optional.of(owner));
+		// when(owners.findById(pathOwnerId)).thenReturn(Optional.of(owner));
+		when(owners.getById(pathOwnerId)).thenReturn(Optional.of(owner));
 
 		mockMvc.perform(MockMvcRequestBuilders.post("/owners/{ownerId}/edit", pathOwnerId).flashAttr("owner", owner))
 			.andExpect(status().is3xxRedirection())

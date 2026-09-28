@@ -25,6 +25,7 @@ import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
+import org.springframework.samples.petclinic.mapper.VetMapper;
 import org.springframework.test.context.aot.DisabledInAotMode;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
@@ -35,6 +36,8 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+
+import java.util.List;
 
 /**
  * Test class for the {@link VetController}
@@ -49,7 +52,8 @@ class VetControllerTests {
 	private MockMvc mockMvc;
 
 	@MockitoBean
-	private VetRepository vets;
+	// private VetRepository vets;
+	private VetMapper vets;
 
 	private Vet james() {
 		Vet james = new Vet();
@@ -73,9 +77,12 @@ class VetControllerTests {
 
 	@BeforeEach
 	void setup() {
-		given(this.vets.findAll()).willReturn(Lists.newArrayList(james(), helen()));
-		given(this.vets.findAll(any(Pageable.class)))
-			.willReturn(new PageImpl<Vet>(Lists.newArrayList(james(), helen())));
+		// given(this.vets.findAll()).willReturn(Lists.newArrayList(james(), helen()));
+		// given(this.vets.findAll(any(Pageable.class)))
+		// 	.willReturn(new PageImpl<Vet>(Lists.newArrayList(james(), helen())));
+		given(this.vets.getAllList()).willReturn(Lists.newArrayList(james(), helen()));
+		given(this.vets.getAllPage()).willReturn(List.of(1, 2));
+    	given(this.vets.getByIds(List.of(1, 2))).willReturn(Lists.newArrayList(james(), helen()));
 
 	}
 

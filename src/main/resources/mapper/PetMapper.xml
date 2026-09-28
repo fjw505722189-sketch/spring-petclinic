@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="org.springframework.samples.petclinic.mapper.PetMapper">
+
+        <!-- update --> 
+
+        <update id="update">
+                update pets
+                <set>
+                        <if test="pet.name != null">
+                                name = #{pet.name},
+                        </if>
+                        <if test="pet.birthDate != null">
+                                birth_date = #{pet.birthDate},
+                        </if>
+                        <if test="pet.type != null">
+                                type_id = #{pet.type.id},
+                        </if>
+                        <if test="ownerId != null">
+                                owner_id = #{ownerId},
+                        </if>
+                </set>
+                 where id = #{pet.id}
+        </update>
+
+
+
+</mapper>
+
+

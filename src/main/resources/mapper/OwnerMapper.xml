@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="org.springframework.samples.petclinic.mapper.OwnerMapper">
+
+        <!-- getByLastNameStartingWith --> 
+
+        <select id="getByLastName" resultType="org.springframework.samples.petclinic.owner.Owner">
+                SELECT id, first_name, last_name, address, city, telephone
+                FROM owners
+                <where>
+                        <if test="lastName != null and lastName != ''">
+                                AND last_name LIKE CONCAT(#{lastName}, '%')
+                        </if>
+                </where>
+                ORDER BY last_name DESC
+        </select>
+
+
+        <!-- insert --> 
+
+        <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+                insert into owners (first_name, last_name, address, city, telephone)
+                values (#{firstName}, #{lastName}, #{address}, #{city}, #{telephone})
+        </insert>        
+
+        <!-- update --> 
+
+        <update id="update">
+                update owners
+                <set>
+                        <if test="firstName != null">
+                                first_name = #{firstName},
+                        </if>
+                        <if test="lastName != null">
+                                last_name = #{lastName},
+                        </if>
+                        <if test="address != null">
+                                address = #{address},
+                        </if>
+                        <if test="city != null">
+                                city = #{city},
+                        </if>
+                        <if test="telephone != null">
+                                telephone = #{telephone}
+                        </if>
+                </set>
+                 where id = #{id}
+        </update>
+
+
+        <!-- getById --> 
+
+        <select id="getById" parameterType="java.lang.Integer" resultMap="ownerDetailResultMap">
+                SELECT
+                        o.id          AS owner_id,
+                        o.first_name  AS owner_first_name,
+                        o.last_name   AS owner_last_name,
+                        o.address     AS owner_address,
+                        o.city        AS owner_city,
+                        o.telephone   AS owner_telephone,
+
+                        p.id          AS pet_id,
+                        p.name        AS pet_name,
+                        p.birth_date  AS pet_birth_date,
+
+                        t.id          AS type_id,
+                        t.name        AS type_name,
+
+                        v.id          AS visit_id,
+                        v.visit_date  AS visit_date,
+                        v.description AS visit_description
+                FROM owners o
+                LEFT JOIN pets p ON p.owner_id = o.id
+                LEFT JOIN types t ON t.id = p.type_id
+                LEFT JOIN visits v ON v.pet_id = p.id
+                WHERE o.id = #{id}
+                ORDER BY p.name, v.visit_date ASC
+        </select>
+
+
+        <resultMap id="ownerDetailResultMap" type="org.springframework.samples.petclinic.owner.Owner">
+                <id property="id" column="owner_id"/>
+
+                <result property="firstName" column="owner_first_name"/>
+                <result property="lastName" column="owner_last_name"/>
+                <result property="address" column="owner_address"/>
+                <result property="city" column="owner_city"/>
+                <result property="telephone" column="owner_telephone"/>
+
+                <collection property="pets" resultMap="petResultMap"/>
+        </resultMap>
+
+
+        <resultMap id="petResultMap" type="org.springframework.samples.petclinic.owner.Pet">
+                <id property="id" column="pet_id"/>
+
+                <result property="name" column="pet_name"/>
+                <result property="birthDate" column="pet_birth_date"/>
+
+                <association property="type" javaType="org.springframework.samples.petclinic.owner.PetType">
+                        <id property="id" column="type_id"/>
+                        <result property="name" column="type_name"/>
+                </association>
+
+                <collection property="visits" resultMap="visitResultMap"/>
+        </resultMap>
+
+
+        <resultMap id="visitResultMap" type="org.springframework.samples.petclinic.owner.Visit">
+                <id property="id" column="visit_id"/>
+
+                <result property="date" column="visit_date"/>
+                <result property="description" column="visit_description"/>
+        </resultMap>
+
+
+
+</mapper>

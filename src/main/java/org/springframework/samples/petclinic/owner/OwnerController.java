@@ -20,8 +20,10 @@ import java.util.Objects;
 import java.util.Optional;
 
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
+import org.springframework.samples.petclinic.mapper.OwnerMapper;
+// import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -38,6 +40,9 @@ import jakarta.validation.Valid;
 
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import com.github.pagehelper.PageHelper;
+import com.github.pagehelper.PageInfo;
+
 /**
  * @author Juergen Hoeller
  * @author Ken Krebs
@@ -50,9 +55,13 @@ class OwnerController {
 
 	private static final String VIEWS_OWNER_CREATE_OR_UPDATE_FORM = "owners/createOrUpdateOwnerForm";
 
-	private final OwnerRepository owners;
+	// private final OwnerRepository owners;
+	private final OwnerMapper owners;
 
-	public OwnerController(OwnerRepository owners) {
+	// public OwnerController(OwnerRepository owners) {
+	// 	this.owners = owners;
+	// }
+	public OwnerController(OwnerMapper owners) {
 		this.owners = owners;
 	}
 
@@ -64,7 +73,8 @@ class OwnerController {
 	@ModelAttribute("owner")
 	public Owner findOwner(@PathVariable(name = "ownerId", required = false) Integer ownerId) {
 		return ownerId == null ? new Owner()
-				: this.owners.findById(ownerId)
+				// : this.owners.findById(ownerId)
+				: this.owners.getById(ownerId)
 					.orElseThrow(() -> new IllegalArgumentException("Owner not found with id: " + ownerId
 							+ ". Please ensure the ID is correct " + "and the owner exists in the database."));
 	}
@@ -81,7 +91,8 @@ class OwnerController {
 			return VIEWS_OWNER_CREATE_OR_UPDATE_FORM;
 		}
 
-		this.owners.save(owner);
+		// this.owners.save(owner);
+		this.owners.insert(owner);
 		redirectAttributes.addFlashAttribute("message", "New Owner Created");
 		return "redirect:/owners/" + owner.getId();
 	}
@@ -132,8 +143,17 @@ class OwnerController {
 
 	private Page<Owner> findPaginatedForOwnersLastName(int page, String lastname) {
 		int pageSize = 5;
-		Pageable pageable = PageRequest.of(page - 1, pageSize);
-		return owners.findByLastNameStartingWith(lastname, pageable);
+		// Pageable pageable = PageRequest.of(page - 1, pageSize);
+		// return owners.findByLastNameStartingWith(lastname, pageable);
+		
+		PageHelper.startPage(page, pageSize);
+		List<Owner> ownersList = owners.getByLastName(lastname);
+		PageInfo<Owner> pageInfo = new PageInfo<>(ownersList);
+		return new PageImpl<>(
+			pageInfo.getList(),
+			PageRequest.of(page - 1, pageSize),
+			pageInfo.getTotal()
+		);
 	}
 
 	@GetMapping("/owners/{ownerId}/edit")
@@ -156,7 +176,8 @@ class OwnerController {
 		}
 
 		owner.setId(ownerId);
-		this.owners.save(owner);
+		// this.owners.save(owner);
+		this.owners.update(owner);
 		redirectAttributes.addFlashAttribute("message", "Owner Values Updated");
 		return "redirect:/owners/{ownerId}";
 	}
@@ -169,7 +190,8 @@ class OwnerController {
 	@GetMapping("/owners/{ownerId}")
 	public ModelAndView showOwner(@PathVariable("ownerId") int ownerId) {
 		ModelAndView mav = new ModelAndView("owners/ownerDetails");
-		Optional<Owner> optionalOwner = this.owners.findById(ownerId);
+		// Optional<Owner> optionalOwner = this.owners.findById(ownerId);
+		Optional<Owner> optionalOwner = this.owners.getById(ownerId);
 		Owner owner = optionalOwner.orElseThrow(() -> new IllegalArgumentException(
 				"Owner not found with id: " + ownerId + ". Please ensure the ID is correct "));
 		mav.addObject(owner);

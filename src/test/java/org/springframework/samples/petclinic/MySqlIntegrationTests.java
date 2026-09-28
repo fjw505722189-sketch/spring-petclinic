@@ -29,7 +29,8 @@ import org.springframework.boot.testcontainers.service.connection.ServiceConnect
 import org.springframework.http.HttpStatus;
 import org.springframework.http.RequestEntity;
 import org.springframework.http.ResponseEntity;
-import org.springframework.samples.petclinic.vet.VetRepository;
+import org.springframework.samples.petclinic.mapper.VetMapper;
+// import org.springframework.samples.petclinic.vet.VetRepository;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.aot.DisabledInAotMode;
 import org.springframework.web.client.RestTemplate;
@@ -53,15 +54,16 @@ class MySqlIntegrationTests {
 	int port;
 
 	@Autowired
-	private VetRepository vets;
+	// private VetRepository vets;
+	private VetMapper vets;
 
 	@Autowired
 	private RestTemplateBuilder builder;
 
 	@Test
 	void findAll() {
-		vets.findAll();
-		vets.findAll(); // served from cache
+		vets.getAllList();
+		vets.getAllPage(); // served from cache
 	}
 
 	@Test

@@ -19,6 +19,9 @@ import java.time.LocalDate;
 import java.util.Map;
 import java.util.Optional;
 
+import org.springframework.http.HttpStatus;
+import org.springframework.samples.petclinic.mapper.OwnerMapper;
+import org.springframework.samples.petclinic.mapper.VisitMapper;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.WebDataBinder;
@@ -27,6 +30,7 @@ import org.springframework.web.bind.annotation.InitBinder;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.server.ResponseStatusException;
 
 import jakarta.validation.Valid;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
@@ -42,10 +46,18 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 @Controller
 class VisitController {
 
-	private final OwnerRepository owners;
+	// private final OwnerRepository owners;
 
-	public VisitController(OwnerRepository owners) {
+	// public VisitController(OwnerRepository owners) {
+	// 	this.owners = owners;
+	// }
+	private final OwnerMapper owners;
+
+	private final VisitMapper visits;
+
+	public VisitController(OwnerMapper owners,VisitMapper visits) {
 		this.owners = owners;
+		this.visits = visits;
 	}
 
 	@InitBinder
@@ -63,7 +75,8 @@ class VisitController {
 	@ModelAttribute("visit")
 	public Visit loadPetWithVisit(@PathVariable("ownerId") int ownerId, @PathVariable("petId") int petId,
 			Map<String, Object> model) {
-		Optional<Owner> optionalOwner = owners.findById(ownerId);
+		// Optional<Owner> optionalOwner = owners.findById(ownerId);
+		Optional<Owner> optionalOwner = owners.getById(ownerId);
 		Owner owner = optionalOwner.orElseThrow(() -> new IllegalArgumentException(
 				"Owner not found with id: " + ownerId + ". Please ensure the ID is correct "));
 
@@ -105,10 +118,28 @@ class VisitController {
 			return "pets/createOrUpdateVisitForm";
 		}
 
-		owner.addVisit(petId, visit);
-		this.owners.save(owner);
+		// owner.addVisit(petId, visit);
+		// this.owners.save(owner);
+		
+		this.visits.insert(petId, visit);
 		redirectAttributes.addFlashAttribute("message", "Your visit has been booked");
 		return "redirect:/owners/{ownerId}";
 	}
+
+	@PostMapping("/owners/{ownerId}/pets/{petId}/visits/{visitId}/delete")
+	public String deleteVisit(@PathVariable("ownerId") int ownerId,
+								@PathVariable("petId") int petId,
+								@PathVariable("visitId") int visitId) {
+
+		int deleted = this.visits.deleteById(visitId, petId);
+
+		if (deleted == 0) {
+			throw new ResponseStatusException(
+					HttpStatus.NOT_FOUND, "Visit not found for this pet");
+		}
+
+		return "redirect:/owners/" + ownerId;
+	}
+
 
 }

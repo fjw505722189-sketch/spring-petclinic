@@ -20,9 +20,9 @@ import java.time.LocalDate;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.samples.petclinic.model.BaseEntity;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Table;
+// import jakarta.persistence.Column;
+// import jakarta.persistence.Entity;
+// import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotBlank;
 
 /**
@@ -31,11 +31,11 @@ import jakarta.validation.constraints.NotBlank;
  * @author Ken Krebs
  * @author Dave Syer
  */
-@Entity
-@Table(name = "visits")
+// @Entity
+// @Table(name = "visits")
 public class Visit extends BaseEntity {
 
-	@Column(name = "visit_date")
+	// @Column(name = "visit_date")
 	@DateTimeFormat(pattern = "yyyy-MM-dd")
 	private LocalDate date;
 

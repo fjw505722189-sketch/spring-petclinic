@@ -32,6 +32,7 @@ import org.junit.jupiter.api.condition.DisabledInNativeImage;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.samples.petclinic.mapper.PetTypeMapper;
 
 /**
  * Test class for {@link PetTypeFormatter}
@@ -43,7 +44,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class PetTypeFormatterTests {
 
 	@Mock
-	private PetTypeRepository types;
+	// private PetTypeRepository types;
+	private PetTypeMapper types;
 
 	private PetTypeFormatter petTypeFormatter;
 
@@ -62,14 +64,16 @@ class PetTypeFormatterTests {
 
 	@Test
 	void shouldParse() throws ParseException {
-		given(types.findPetTypes()).willReturn(makePetTypes());
+		// given(types.findPetTypes()).willReturn(makePetTypes());
+		given(types.getPetTypes()).willReturn(makePetTypes());
 		PetType petType = petTypeFormatter.parse("Bird", Locale.ENGLISH);
 		assertThat(petType.getName()).isEqualTo("Bird");
 	}
 
 	@Test
 	void shouldThrowParseException() {
-		given(types.findPetTypes()).willReturn(makePetTypes());
+		// given(types.findPetTypes()).willReturn(makePetTypes());
+		given(types.getPetTypes()).willReturn(makePetTypes());
 		Assertions.assertThrows(ParseException.class, () -> {
 			petTypeFormatter.parse("Fish", Locale.ENGLISH);
 		});

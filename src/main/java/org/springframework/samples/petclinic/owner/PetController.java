@@ -21,6 +21,9 @@ import java.util.Objects;
 import java.util.Optional;
 
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.samples.petclinic.mapper.OwnerMapper;
+import org.springframework.samples.petclinic.mapper.PetMapper;
+import org.springframework.samples.petclinic.mapper.PetTypeMapper;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
 import org.springframework.util.Assert;
@@ -50,23 +53,36 @@ class PetController {
 
 	private static final String VIEWS_PETS_CREATE_OR_UPDATE_FORM = "pets/createOrUpdatePetForm";
 
-	private final OwnerRepository owners;
+	// private final OwnerRepository owners;
 
-	private final PetTypeRepository types;
+	// private final PetTypeRepository types;
 
-	public PetController(OwnerRepository owners, PetTypeRepository types) {
+	// public PetController(OwnerRepository owners, PetTypeRepository types) {
+	// 	this.owners = owners;
+	// 	this.types = types;
+	// }
+	private final OwnerMapper owners;
+
+	private final PetTypeMapper types;
+
+	private final PetMapper pet;
+
+	public PetController(OwnerMapper owners, PetTypeMapper types, PetMapper pet) {
 		this.owners = owners;
 		this.types = types;
+		this.pet = pet;
 	}
 
 	@ModelAttribute("types")
 	public Collection<PetType> populatePetTypes() {
-		return this.types.findPetTypes();
+		// return this.types.findPetTypes();
+		return this.types.getPetTypes();
 	}
 
 	@ModelAttribute("owner")
 	public Owner findOwner(@PathVariable("ownerId") int ownerId) {
-		Optional<Owner> optionalOwner = this.owners.findById(ownerId);
+		// Optional<Owner> optionalOwner = this.owners.findById(ownerId);
+		Optional<Owner> optionalOwner = this.owners.getById(ownerId);
 		Owner owner = optionalOwner.orElseThrow(() -> new IllegalArgumentException(
 				"Owner not found with id: " + ownerId + ". Please ensure the ID is correct "));
 		return owner;
@@ -80,7 +96,8 @@ class PetController {
 			return new Pet();
 		}
 
-		Optional<Owner> optionalOwner = this.owners.findById(ownerId);
+		// Optional<Owner> optionalOwner = this.owners.findById(ownerId);
+		Optional<Owner> optionalOwner = this.owners.getById(ownerId);
 		Owner owner = optionalOwner.orElseThrow(() -> new IllegalArgumentException(
 				"Owner not found with id: " + ownerId + ". Please ensure the ID is correct "));
 		return owner.getPet(petId);
@@ -122,8 +139,9 @@ class PetController {
 		}
 
 		try {
-			owner.addPet(pet);
-			this.owners.saveAndFlush(owner);
+			// owner.addPet(pet);
+			// this.owners.saveAndFlush(owner);
+			this.pet.insert(owner.getId(), pet);
 		}
 		catch (DataIntegrityViolationException ex) {
 			if (!isDuplicatePetNameViolation(ex)) {
@@ -196,7 +214,8 @@ class PetController {
 		else {
 			owner.addPet(pet);
 		}
-		this.owners.saveAndFlush(owner);
+		// this.owners.saveAndFlush(owner);
+		this.pet.update(owner.getId(), pet);
 	}
 
 	private boolean isDuplicatePetNameViolation(DataIntegrityViolationException ex) {

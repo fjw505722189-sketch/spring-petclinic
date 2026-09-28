@@ -33,14 +33,20 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.samples.petclinic.mapper.OwnerMapper;
+import org.springframework.samples.petclinic.mapper.PetMapper;
+import org.springframework.samples.petclinic.mapper.PetTypeMapper;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.model;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.view;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.BDDMockito.willThrow;
 
 /**
  * Test class for the {@link PetController}
@@ -62,17 +68,23 @@ class PetControllerTests {
 	private MockMvc mockMvc;
 
 	@MockitoBean
-	private OwnerRepository owners;
+	// private OwnerRepository owners;
+	private OwnerMapper owners;
 
 	@MockitoBean
-	private PetTypeRepository types;
+	// private PetTypeRepository types;
+	private PetTypeMapper types;
+
+	@MockitoBean
+	private PetMapper pet;
 
 	@BeforeEach
 	void setup() {
 		PetType cat = new PetType();
 		cat.setId(3);
 		cat.setName("hamster");
-		given(this.types.findPetTypes()).willReturn(List.of(cat));
+		// given(this.types.findPetTypes()).willReturn(List.of(cat));
+		given(this.types.getPetTypes()).willReturn(List.of(cat));
 
 		Owner owner = new Owner();
 		Pet pet = new Pet();
@@ -83,7 +95,8 @@ class PetControllerTests {
 		dog.setId(TEST_PET_ID + 1);
 		pet.setName("petty");
 		dog.setName("doggy");
-		given(this.owners.findById(TEST_OWNER_ID)).willReturn(Optional.of(owner));
+		// given(this.owners.findById(TEST_OWNER_ID)).willReturn(Optional.of(owner));
+		given(this.owners.getById(TEST_OWNER_ID)).willReturn(Optional.of(owner));
 	}
 
 	@Test
@@ -164,8 +177,11 @@ class PetControllerTests {
 
 		@Test
 		void processCreationFormWithDataIntegrityViolation() throws Exception {
-			given(owners.saveAndFlush(any(Owner.class)))
-				.willThrow(new DataIntegrityViolationException("Duplicate key: unique_owner_pet_name"));
+			// given(owners.saveAndFlush(any(Owner.class)))
+			// 	.willThrow(new DataIntegrityViolationException("Duplicate key: unique_owner_pet_name"));
+			willThrow(new DataIntegrityViolationException(
+            "Duplicate key: unique_owner_pet_name"))
+        .given(pet).insert(eq(TEST_OWNER_ID), any(Pet.class));
 			mockMvc
 				.perform(post("/owners/{ownerId}/pets/new", TEST_OWNER_ID).param("name", "Betty")
 					.param("type", "hamster")
@@ -255,8 +271,11 @@ class PetControllerTests {
 
 		@Test
 		void processUpdateFormWithDataIntegrityViolation() throws Exception {
-			given(owners.saveAndFlush(any(Owner.class)))
-				.willThrow(new DataIntegrityViolationException("Duplicate key: unique_owner_pet_name"));
+			// given(owners.saveAndFlush(any(Owner.class)))
+			// 	.willThrow(new DataIntegrityViolationException("Duplicate key: unique_owner_pet_name"));
+			willThrow(new DataIntegrityViolationException(
+            "Duplicate key: unique_owner_pet_name"))
+        .given(pet).update(eq(TEST_OWNER_ID), any(Pet.class));
 			mockMvc
 				.perform(post("/owners/{ownerId}/pets/{petId}/edit", TEST_OWNER_ID, TEST_PET_ID).param("name", "Betty")
 					.param("type", "hamster")

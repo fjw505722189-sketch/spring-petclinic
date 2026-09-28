@@ -18,13 +18,19 @@ package org.springframework.samples.petclinic.vet;
 import java.util.List;
 
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.samples.petclinic.mapper.VetMapper;
+import org.springframework.samples.petclinic.owner.Owner;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+
+import com.github.pagehelper.PageHelper;
+import com.github.pagehelper.PageInfo;
 
 /**
  * @author Juergen Hoeller
@@ -35,10 +41,15 @@ import org.springframework.web.bind.annotation.ResponseBody;
 @Controller
 class VetController {
 
-	private final VetRepository vetRepository;
+	// private final VetRepository vetRepository;
 
-	public VetController(VetRepository vetRepository) {
-		this.vetRepository = vetRepository;
+	// public VetController(VetRepository vetRepository) {
+	// this.vetRepository = vetRepository;
+	// }
+	private final VetMapper VetMapper;
+
+	public VetController(VetMapper VetMapper) {
+		this.VetMapper = VetMapper;
 	}
 
 	@GetMapping("/vets.html")
@@ -58,8 +69,17 @@ class VetController {
 
 	private Page<Vet> findPaginated(int page) {
 		int pageSize = 5;
-		Pageable pageable = PageRequest.of(page - 1, pageSize);
-		return vetRepository.findAll(pageable);
+		// Pageable pageable = PageRequest.of(page - 1, pageSize);
+		// return vetRepository.findAll(pageable);
+
+		PageHelper.startPage(page, pageSize);
+		List<Integer> vetIds = this.VetMapper.getAllPage();
+		PageInfo<Integer> pageInfo = new PageInfo<>(vetIds);
+		List<Vet> vetList = vetIds.isEmpty() ? List.of() : this.VetMapper.getByIds(vetIds);
+		return new PageImpl<>(
+			vetList, 
+			PageRequest.of(page - 1, pageSize), 
+			pageInfo.getTotal());
 	}
 
 	@GetMapping({ "/vets" })
@@ -67,7 +87,8 @@ class VetController {
 		// Here we are returning an object of type 'Vets' rather than a collection of Vet
 		// objects so it is simpler for JSon/Object mapping
 		Vets vets = new Vets();
-		vets.getVetList().addAll(this.vetRepository.findAll());
+		// vets.getVetList().addAll(this.vetRepository.findAll());
+		vets.getVetList().addAll(this.VetMapper.getAllList());
 		return vets;
 	}
 

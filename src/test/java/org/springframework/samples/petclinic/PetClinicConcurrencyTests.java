@@ -19,8 +19,9 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.samples.petclinic.mapper.OwnerMapper;
 import org.springframework.samples.petclinic.owner.Owner;
-import org.springframework.samples.petclinic.owner.OwnerRepository;
+// import org.springframework.samples.petclinic.owner.OwnerRepository;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
@@ -32,7 +33,8 @@ public class PetClinicConcurrencyTests {
 	private int port;
 
 	@Autowired
-	private OwnerRepository ownerRepository;
+	// private OwnerRepository ownerRepository;
+	private OwnerMapper ownerMapper;
 
 	@Autowired
 	private RestTemplateBuilder restTemplateBuilder;
@@ -40,7 +42,8 @@ public class PetClinicConcurrencyTests {
 	@Test
 	public void testDuplicatePetNameRaceConditionIsBlocked() throws Exception {
 		int ownerId = 1;
-		Optional<Owner> initialOwnerOpt = ownerRepository.findById(ownerId);
+		// Optional<Owner> initialOwnerOpt = ownerRepository.findById(ownerId);
+		Optional<Owner> initialOwnerOpt = ownerMapper.getById(ownerId);
 		assertThat(initialOwnerOpt).isPresent();
 		Owner owner = initialOwnerOpt.get();
 
@@ -111,7 +114,8 @@ public class PetClinicConcurrencyTests {
 			executorService.shutdown();
 		}
 
-		Owner updatedOwner = ownerRepository.findById(ownerId).get();
+		// Owner updatedOwner = ownerRepository.findById(ownerId).get();
+		Owner updatedOwner = ownerMapper.getById(ownerId).get();
 		int newPetCount = updatedOwner.getPets().size();
 
 		System.out.println("--- Concurrency Test Assertions ---");

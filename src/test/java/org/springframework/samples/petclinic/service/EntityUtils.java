@@ -16,10 +16,11 @@
 
 package org.springframework.samples.petclinic.service;
 
-import org.springframework.orm.ObjectRetrievalFailureException;
+// import org.springframework.orm.ObjectRetrievalFailureException;
 import org.springframework.samples.petclinic.model.BaseEntity;
 
 import java.util.Collection;
+import java.util.NoSuchElementException;
 
 /**
  * Utility methods for handling entities. Separate from the BaseEntity class mainly
@@ -38,16 +39,18 @@ public abstract class EntityUtils {
 	 * @param entityClass the entity class to look up
 	 * @param entityId the entity id to look up
 	 * @return the found entity
-	 * @throws ObjectRetrievalFailureException if the entity was not found
+	 * @throws NoSuchElementException if the entity was not found
 	 */
 	public static <T extends BaseEntity> T getById(Collection<T> entities, Class<T> entityClass, int entityId)
-			throws ObjectRetrievalFailureException {
+			// throws ObjectRetrievalFailureException {
+			throws NoSuchElementException {
 		for (T entity : entities) {
 			if (entity.getId() != null && entity.getId() == entityId && entityClass.isInstance(entity)) {
 				return entity;
 			}
 		}
-		throw new ObjectRetrievalFailureException(entityClass, entityId);
+		// throw new ObjectRetrievalFailureException(entityClass, entityId);
+		throw new NoSuchElementException(entityClass.getSimpleName() + " not found, id=" + entityId);
 	}
 
 }

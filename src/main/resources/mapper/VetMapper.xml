@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="org.springframework.samples.petclinic.mapper.VetMapper">
+
+        <resultMap  id="VetMap" type="org.springframework.samples.petclinic.vet.Vet">
+                <id property="id" column="vet_id"/>
+
+                <result property="firstName" column="first_name"/>
+                <result property="lastName" column="last_name"/>
+
+		<collection property="specialtiesInternal" resultMap="SpecialtyMap"/>
+        </resultMap>
+
+
+
+        <resultMap  id="SpecialtyMap" type="org.springframework.samples.petclinic.vet.Specialty">
+                <id property="id" column="specialty_id"/>
+
+                <result property="name" column="name"/>
+        </resultMap>
+
+        
+
+        <!-- getAll --> 
+
+	<select id="getAllPage" resultType="java.lang.Integer">
+		select id from vets order by id
+	</select>
+
+	<select id="getByIds" resultMap="VetMap">
+		select
+			v.id as vet_id,
+			v.first_name,
+			v.last_name,
+			s.id as specialty_id,
+			s.name
+		from vets v
+		left join vet_specialties vs on v.id = vs.vet_id
+		left join specialties s on vs.specialty_id = s.id
+		where v.id in
+		<foreach collection="vetIds" item="vetId" open="(" separator="," close=")">
+			#{vetId}
+		</foreach>
+		order by v.id, s.name
+	</select>
+
+
+        <select id="getAllList" resultMap='VetMap'>
+                select 
+                        v.id as vet_id, 
+                        v.first_name, 
+                        v.last_name,
+                        s.id as specialty_id,
+                        s.name
+                from vets v
+                left join vet_specialties vs on v.id = vs.vet_id
+                left join specialties s on vs.specialty_id = s.id
+                order by v.id, s.name
+        </select>
+
+
+
+</mapper>
+
+
